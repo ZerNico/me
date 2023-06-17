@@ -35,7 +35,7 @@ export default function Using({ seed }: UsingProps) {
   return (
     <Section
       title={
-        <>
+        <div className="w-full">
           <span className="whitespace-pre">I love using </span>
           <AnimatePresence initial={false}>
             <motion.span
@@ -48,7 +48,7 @@ export default function Using({ seed }: UsingProps) {
               {shuffledTools[currentToolIndex]?.name}
             </motion.span>
           </AnimatePresence>
-        </>
+        </div>
       }
     >
       <LogoScroller tools={shuffledTools} />

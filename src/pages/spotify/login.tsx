@@ -1,9 +1,10 @@
+import { env } from 'next-runtime-env'
+
 import { Button } from '@/components/ui/button'
-import { env } from '@/env'
 
 const login = () => {
-  const clientId = encodeURIComponent(env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID)
-  const redirectUri = encodeURIComponent(env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI)
+  const clientId = encodeURIComponent(env('NEXT_PUBLIC_SPOTIFY_CLIENT_ID'))
+  const redirectUri = encodeURIComponent(env('NEXT_PUBLIC_SPOTIFY_REDIRECT_URI'))
   const scopes = encodeURIComponent('user-read-playback-state user-read-recently-played')
 
   window.location.href = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&scope=${scopes}`

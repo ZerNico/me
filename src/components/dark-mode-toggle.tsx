@@ -20,23 +20,27 @@ export default function DarkModeToggle(props: ComponentProps<'button'>) {
     damping: 16,
   }
 
+  const t = theme === 'system' ? 'light' : theme
+
   return (
     <button className="h-12 w-12 overflow-hidden rounded-full bg-muted-background" id="toggle" {...props}>
       <motion.div className="relative h-full w-full flex items-center justify-center">
         <motion.div
+          suppressHydrationWarning
           variants={lightVariants}
           initial={false}
-          animate={theme === 'light' ? 'visible' : 'hidden'}
+          animate={t === 'light' ? 'visible' : 'hidden'}
           transition={transition}
           className="i-mingcute-sun-fill absolute h-8 w-8"
-         />
+        />
         <motion.div
+          suppressHydrationWarning
           variants={darkVariants}
           initial={false}
-          animate={theme === 'dark' ? 'visible' : 'hidden'}
+          animate={t === 'dark' ? 'visible' : 'hidden'}
           transition={transition}
           className="i-mingcute-moon-fill absolute h-8 w-8"
-         />
+        />
       </motion.div>
     </button>
   )

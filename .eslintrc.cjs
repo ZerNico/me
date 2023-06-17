@@ -58,5 +58,6 @@ module.exports = {
         prefer: 'type-imports',
       },
     ],
+    'react/jsx-no-useless-fragment': 'error',
   },
 }

@@ -22,6 +22,7 @@ export default function Header() {
         }}
       >
         <Image
+          priority={true}
           src="/img/avatar.jpg"
           alt="A headshot of Nico Franke"
           width={112}

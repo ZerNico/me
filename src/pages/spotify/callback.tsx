@@ -1,10 +1,10 @@
 import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
+import { env } from 'next-runtime-env'
 import { useRef } from 'react'
 import { Client } from 'spotify-api.js'
 
 import { Button } from '@/components/ui/button'
-import { env } from '@/env'
 
 export default function Callback({ refreshToken }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter()
@@ -51,10 +51,10 @@ export const getServerSideProps: GetServerSideProps<{ refreshToken?: string }> =
     const client = await Client.create({
       refreshToken: true,
       token: {
-        clientID: env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID,
-        clientSecret: env.SPOTIFY_CLIENT_SECRET,
+        clientID: env('NEXT_PUBLIC_SPOTIFY_CLIENT_ID'),
+        clientSecret: env('SPOTIFY_CLIENT_SECRET'),
         code: query.code as string,
-        redirectURL: env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI,
+        redirectURL: env('NEXT_PUBLIC_SPOTIFY_REDIRECT_URI'),
       },
     })
     return {
