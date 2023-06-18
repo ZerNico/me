@@ -18,7 +18,7 @@ export default function Projects() {
       description:
         'An AOSP based custom ROM with a focus on stability and performance. It includes many original features and customizations.',
       icon: '/img/posp.jpg',
-      url: 'https://potatoproject.co',
+      url: 'https://github.com/PotatoProject',
     },
     {
       title: 'Lawnchair',
