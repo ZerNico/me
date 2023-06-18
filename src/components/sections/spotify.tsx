@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { clsx } from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
+import { usePlausible } from 'next-plausible'
 import { useEffect } from 'react'
 import { useAudioPlayer } from 'react-use-audio-player'
 
@@ -36,6 +37,17 @@ export default function Spotify() {
     setVolume(0.1)
   }, [data?.track.previewURL, load, setVolume])
 
+  const plausible = usePlausible()
+
+  const handlePlayPause = () => {
+    plausible('Spotify Play/Pause', {
+      props: {
+        action: playing ? 'pause' : 'play',
+      },
+    })
+    togglePlayPause()
+  }
+
   return (
     <Section title="My Music" description="Check out what I am currently listening to on Spotify">
       {data ? (
@@ -56,12 +68,12 @@ export default function Spotify() {
                     className={clsx('w-full h-full object-cover rounded-full', {
                       'animate-spin-1800 ': data.isPlaying,
                     })}
-                   />
+                  />
                   <div className="absolute inset-0 h-full w-full flex items-center justify-center">
                     <div className="rounded-full bg-background p-3">
                       <div
                         className={clsx('text-3xl', data.isPlaying ? 'i-mingcute-pause-fill' : 'i-mingcute-play-fill')}
-                       />
+                      />
                     </div>
                   </div>
                 </div>
@@ -71,11 +83,11 @@ export default function Spotify() {
           <p className="text-center text-xl font-semibold sm:text-lg">
             {data.track.name} - {data.track.artists.at(0)?.name}
           </p>
-          <a href={data.track.externalURL.spotify} target="_blank" rel="noreferrer">
-            <Button>Open in Spotify</Button>
+          <a className="rounded-lg" href={data.track.externalURL.spotify} target="_blank" rel="noreferrer">
+            <Button tabIndex={-1}>Open in Spotify</Button>
           </a>
           <Button
-            onClick={togglePlayPause}
+            onClick={handlePlayPause}
             layout
             transition={{
               layout: { duration: 0.2 },
