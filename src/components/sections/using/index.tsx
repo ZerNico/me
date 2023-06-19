@@ -44,6 +44,7 @@ export default function Using({ seed }: UsingProps) {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -50, opacity: 0 }}
               key={shuffledTools[currentToolIndex]?.name}
+              layoutId={shuffledTools[currentToolIndex]?.name}
             >
               {shuffledTools[currentToolIndex]?.name}
             </motion.span>
