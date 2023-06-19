@@ -57,7 +57,11 @@ export default function Elements() {
               </DropdownMenu>
             </div>
             <div className="flex-1">
-              <Toggle pressed={toggleOn} onPressedChange={(pressed) => setToggleOn(pressed)} />
+              <Toggle
+                aria-label="Preview Toggle"
+                pressed={toggleOn}
+                onPressedChange={(pressed) => setToggleOn(pressed)}
+              />
             </div>
           </div>
           <div>

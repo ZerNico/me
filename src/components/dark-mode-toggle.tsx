@@ -23,7 +23,12 @@ export default function DarkModeToggle(props: ComponentProps<'button'>) {
   const t = theme === 'system' ? 'light' : theme
 
   return (
-    <button className="h-12 w-12 overflow-hidden rounded-full bg-muted-background" id="toggle" {...props}>
+    <button
+      aria-label="Toggle for Dark/Light Mode"
+      className="h-12 w-12 overflow-hidden rounded-full bg-muted-background"
+      id="toggle"
+      {...props}
+    >
       <motion.div className="relative h-full w-full flex items-center justify-center">
         <motion.div
           suppressHydrationWarning

@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 import { Section } from '../section'
 import { Card, CardDescription, CardTitle } from '../ui/card'
@@ -55,7 +56,13 @@ export default function Projects() {
               }}
             >
               <div className="">
-                <img src={project.icon} alt={`${project.title} Icon`} className="w-10 rounded-full" />
+                <Image
+                  width={40}
+                  height={40}
+                  src={project.icon}
+                  alt={`${project.title} Icon`}
+                  className="w-10 rounded-full"
+                />
               </div>
               <CardTitle>{project.title}</CardTitle>
               <CardDescription>{project.description}</CardDescription>
