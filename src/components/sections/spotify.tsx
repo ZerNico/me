@@ -1,110 +1,197 @@
-import { useQuery } from '@tanstack/react-query'
-import { clsx } from 'clsx'
-import { AnimatePresence, motion } from 'framer-motion'
-import { usePlausible } from 'next-plausible'
-import { useEffect } from 'react'
-import { useAudioPlayer } from 'react-use-audio-player'
+import {
+	experimental_streamedQuery as streamedQuery,
+	useQuery,
+} from "@tanstack/react-query";
+import { createServerFn } from "@tanstack/react-start";
+import clsx from "clsx";
+import { AnimatePresence, motion } from "motion/react";
+import SpotifyService from "~/lib/services/spotify";
+import IconPauseFill from "~icons/mingcute/pause-fill";
+import IconPlayFill from "~icons/mingcute/play-fill";
+import { Section } from "../section";
+import Link from "../ui/link";
 
-import type { CurrentPlayBackResponse } from '@/pages/api/spotify/current-playback'
+interface SpotifyData {
+	isPlaying: boolean;
+	track: {
+		id: string;
+		name: string;
+		artists: { name: string }[];
+		album: {
+			images: { url: string }[];
+		};
+		externalURL: {
+			spotify: string;
+		};
+	};
+}
 
-import { Section } from '../section'
-import { Button } from '../ui/button'
+const getCurrentlyPlaying = createServerFn({
+	method: "GET",
+	response: "raw",
+}).handler(async () => {
+	const stream = new ReadableStream({
+		start(controller) {
+			const spotify = new SpotifyService();
+
+			const sendCurrentlyPlaying = async () => {
+				try {
+					const currentlyPlaying = await spotify.getCurrentlyPlaying();
+
+					if (
+						currentlyPlaying &&
+						currentlyPlaying.currently_playing_type === "track"
+					) {
+						const data = JSON.stringify({
+							isPlaying: currentlyPlaying.is_playing,
+							track: {
+								id: currentlyPlaying.item.id,
+								name: currentlyPlaying.item.name,
+								artists: currentlyPlaying.item.artists,
+								album: currentlyPlaying.item.album,
+								externalURL: {
+									spotify: currentlyPlaying.item.external_urls.spotify,
+								},
+							},
+						} satisfies SpotifyData);
+						controller.enqueue(`data: ${data}\n\n`);
+					} else {
+						const recentlyPlayed = await spotify.getRecentlyPlayed();
+						const lastPlayed = recentlyPlayed.items[0];
+						if (lastPlayed.track) {
+							const data = JSON.stringify({
+								isPlaying: false,
+								track: {
+									id: lastPlayed.track.id,
+									name: lastPlayed.track.name,
+									artists: lastPlayed.track.artists,
+									album: lastPlayed.track.album,
+									externalURL: {
+										spotify: lastPlayed.track.external_urls.spotify,
+									},
+								},
+							} satisfies SpotifyData);
+							controller.enqueue(`data: ${data}\n\n`);
+						}
+					}
+				} catch (error) {
+					console.error("Error fetching currently playing:", error);
+					controller.enqueue(
+						`data: ${JSON.stringify({ error: "Failed to fetch currently playing" })}\n\n`,
+					);
+				}
+			};
+
+			sendCurrentlyPlaying();
+
+			const interval = setInterval(sendCurrentlyPlaying, 5000);
+
+			return () => {
+				clearInterval(interval);
+			};
+		},
+	});
+
+	return new Response(stream, {
+		headers: { "Content-Type": "text/event-stream" },
+	});
+});
 
 export default function Spotify() {
-  const getCurrentPlayback = async () => {
-    const res = await fetch('/api/spotify/current-playback')
-    if (!res.ok) throw new Error('Something went wrong')
+	const currentlyPlayingQuery = useQuery({
+		queryKey: ["spotify", "currently-playing"],
+		queryFn: streamedQuery<SpotifyData>({
+			queryFn: async function* ({ signal }) {
+				const response = await getCurrentlyPlaying();
+				const reader = response.body?.getReader();
+				if (!reader) {
+					throw new Error("Failed to get reader");
+				}
+				const decoder = new TextDecoder();
+				while (!signal.aborted) {
+					const { done, value } = await reader.read();
+					if (done) {
+						break;
+					}
+					try {
+						const text = decoder.decode(value);
+						const jsonText = text.replace(/^data: /, "").trim();
+						const data = JSON.parse(jsonText);
+						yield data;
+					} catch (error) {
+						console.error("Error parsing Spotify data:", error);
+						yield null;
+					}
+				}
+			},
+			refetchMode: "reset",
+			maxChunks: 1,
+		}),
+	});
 
-    return (await res.json()) as CurrentPlayBackResponse
-  }
+	const data = currentlyPlayingQuery.data?.[0];
 
-  const { data } = useQuery({
-    queryKey: ['spotfy', 'current-playback'],
-    queryFn: getCurrentPlayback,
-    refetchInterval: 10_000,
-  })
-
-  const coverUrl = data?.track.album?.images[0]?.url || '/img/cover-placeholder.svg'
-
-  const { load, playing, togglePlayPause, setVolume } = useAudioPlayer()
-
-  useEffect(() => {
-    if (!data?.track.previewURL) return
-    load(data.track.previewURL, {
-      html5: true,
-      format: 'mp3',
-    })
-    setVolume(0.1)
-  }, [data?.track.previewURL, load, setVolume])
-
-  const plausible = usePlausible()
-
-  const handlePlayPause = () => {
-    plausible('Spotify Play/Pause', {
-      props: {
-        action: playing ? 'pause' : 'play',
-      },
-    })
-    togglePlayPause()
-  }
-
-  return (
-    <Section title="My Music" description="Check out what I am currently listening to on Spotify">
-      {data ? (
-        <div className="flex flex-col items-center justify-center gap-4">
-          <div className="relative aspect-square max-w-70 w-full overflow-hidden">
-            <AnimatePresence>
-              <motion.div
-                key={data.track.id}
-                className="absolute"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <div className="relative">
-                  <img
-                    src={coverUrl}
-                    alt={`${data.track.name} Album Cover`}
-                    className={clsx('w-full h-full object-cover rounded-full', {
-                      'animate-spin-1800 ': data.isPlaying,
-                    })}
-                  />
-                  <div className="absolute inset-0 h-full w-full flex items-center justify-center">
-                    <div className="rounded-full bg-background p-3">
-                      <div
-                        className={clsx('text-3xl', data.isPlaying ? 'i-mingcute-pause-fill' : 'i-mingcute-play-fill')}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-          <p className="text-center text-xl font-semibold sm:text-lg">
-            {data.track.name} - {data.track.artists.at(0)?.name}
-          </p>
-          <a className="rounded-lg" href={data.track.externalURL.spotify} target="_blank" rel="noreferrer">
-            <Button tabIndex={-1}>Open in Spotify</Button>
-          </a>
-          <Button
-            onClick={handlePlayPause}
-            layout
-            transition={{
-              layout: { duration: 0.2 },
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <div className={playing ? 'i-mingcute-pause-fill' : 'i-mingcute-play-fill'} />
-              {playing ? 'Pause' : 'Play'} Preview
-            </div>
-          </Button>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center gap-4">
-          <div className="i-mingcute-file-unknown-fill text-9xl" />
-          <p>No data found</p>
-        </div>
-      )}
-    </Section>
-  )
+	return (
+		<Section
+			title="My Music"
+			description="Check out what I am currently listening to on Spotify"
+		>
+			{data ? (
+				<div className="flex flex-col items-center justify-center gap-4">
+					<div className="relative aspect-square h-full w-full max-w-80">
+						<AnimatePresence>
+							<motion.div
+								key={data.track.id}
+								className="absolute aspect-square h-full w-full"
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								transition={{ duration: 1 }}
+							>
+								<img
+									src={data.track.album.images[0].url}
+									alt={`${data.track.name} Album Cover`}
+									className={clsx("h-full w-full rounded-full object-cover", {
+										"animate-spin-1800": data.isPlaying,
+									})}
+								/>
+								<div className="absolute inset-0 flex items-center justify-center">
+									<div className="rounded-full bg-background p-3 text-2xl">
+										{data.isPlaying ? (
+											<IconPauseFill className="text-foreground" />
+										) : (
+											<IconPlayFill className="text-foreground" />
+										)}
+									</div>
+								</div>
+							</motion.div>
+						</AnimatePresence>
+					</div>
+					<div className="flex flex-col gap-2">
+						<AnimatePresence mode="wait">
+							<motion.div
+								key={data.track.id}
+								className="text-center font-semibold text-xl"
+								initial={{ opacity: 0, y: 10 }}
+								animate={{ opacity: 1, y: 0 }}
+								exit={{ opacity: 0, y: -10 }}
+								transition={{ duration: 0.3, ease: "easeInOut" }}
+							>
+								{data.track.name} - {data.track.artists[0].name}
+							</motion.div>
+						</AnimatePresence>
+					</div>
+					<Link
+						href={data.track.externalURL.spotify}
+						target="_blank"
+						rel="noreferrer"
+					>
+						Open in Spotify
+					</Link>
+				</div>
+			) : (
+				<div>No data</div>
+			)}
+		</Section>
+	);
 }

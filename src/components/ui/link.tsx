@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "cva";
 import type { HTMLMotionProps } from "motion/react";
 import { motion } from "motion/react";
 
-const buttonVariants = cva({
+const linkVariants = cva({
 	base: "inline-flex h-10 w-auto select-none items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors duration-300",
 	variants: {
 		variant: {
@@ -17,20 +17,20 @@ const buttonVariants = cva({
 	},
 });
 
-interface ButtonProps
-	extends HTMLMotionProps<"button">,
-		VariantProps<typeof buttonVariants> {
-	ref?: React.RefObject<HTMLButtonElement>;
+interface LinkProps
+	extends HTMLMotionProps<"a">,
+		VariantProps<typeof linkVariants> {
+	ref?: React.RefObject<HTMLAnchorElement>;
 }
 
-export default function Button(props: ButtonProps) {
+export default function Link(props: LinkProps) {
 	return (
-		<motion.button
+		<motion.a
 			whileTap={{ scale: 0.95 }}
 			transition={{ type: "spring", stiffness: 700, damping: 30 }}
 			ref={props.ref}
 			{...props}
-			className={buttonVariants({
+			className={linkVariants({
 				variant: props.variant,
 				className: props.className,
 			})}

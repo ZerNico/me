@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme static {
+  --color-*: initial;
+  --color-background: hsl(360 100% 100%);
+  --color-foreground: hsl(240 14% 22%);
+  --color-muted: hsl(0 0% 98%);
+  --color-muted-foreground: hsl(247 4% 53%);
+  --color-primary-foreground: hsl(220 100% 60%);
+  --color-primary-background: hsl(240 100% 94%);
+  --color-primary-active: hsl(240 100% 89%);
+  --color-secondary-foreground: hsl(10 100% 59%);
+  --color-secondary-background: hsl(8 100% 95%);
+  --color-secondary-active: hsl(8 100% 90%);
+  --color-gray-foreground: hsl(0 0% 60%);
+  --color-gray-background: hsl(0 0% 90%);
+}
+
+[data-theme='dark'] {
+  --color-background: hsl(239 10% 6%);
+  --color-foreground: hsl(240 100% 97%);
+  --color-muted: hsl(360 0% 13%);
+  --color-muted-foreground: hsl(0 0% 60%);
+  --color-primary-background: hsl(240 15% 23%);
+  --color-primary-active: hsl(240 15% 18%);
+  --color-secondary-foreground: hsl(10 100% 59%);
+  --color-secondary-background: hsl(7 22% 23%);
+  --color-secondary-active: hsl(7 22% 18%);
+  --color-gray-foreground: hsl(0 0% 60%);
+  --color-gray-background: hsl(0 0% 40%);
+}
+
+
+@keyframes logo-slider-animation {
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.logo-slider {
+  animation: logo-slider-animation 30s linear infinite;
+}
+
+@keyframes spin-1800 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-1800 {
+  animation: spin-1800 1.8s linear infinite;
+}

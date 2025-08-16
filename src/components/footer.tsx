@@ -1,25 +1,29 @@
+import IconGithub from "~icons/mingcute/github-line";
+import IconInstagram from "~icons/mingcute/ins-line";
+import IconLinkedin from "~icons/mingcute/linkedin-line";
+import IconTwitter from "~icons/mingcute/twitter-line";
+
 export default function Footer() {
-  // current year
-  const year = new Date().getFullYear()
+  const year = new Date().getFullYear();
 
   const socials = [
     {
-      icon: 'i-mingcute-github-line',
-      link: 'https://github.com/ZerNico',
+      icon: IconGithub,
+      link: "https://github.com/ZerNico",
     },
     {
-      icon: 'i-mingcute-linkedin-line',
-      link: 'https://linkedin.com/in/nico-franke-744313224',
+      icon: IconLinkedin,
+      link: "https://linkedin.com/in/nico-franke-744313224",
     },
     {
-      icon: 'i-mingcute-twitter-line',
-      link: 'https://twitter.com/z3rnico',
+      icon: IconTwitter,
+      link: "https://twitter.com/z3rnico",
     },
     {
-      icon: 'i-mingcute-ins-line',
-      link: 'https://instagram.com/z3rnico',
+      icon: IconInstagram,
+      link: "https://instagram.com/z3rnico",
     },
-  ]
+  ];
 
   return (
     <footer className="flex flex-col items-center justify-center gap-4">
@@ -27,10 +31,10 @@ export default function Footer() {
       <div className="flex gap-1 text-xl">
         {socials.map((social) => (
           <a href={social.link} target="_blank" rel="noreferrer" key={social.link}>
-            <div className={social.icon} />
+            <social.icon />
           </a>
         ))}
       </div>
     </footer>
-  )
+  );
 }

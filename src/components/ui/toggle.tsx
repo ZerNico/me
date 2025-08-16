@@ -1,39 +1,40 @@
-import * as TogglePrimitive from '@radix-ui/react-toggle'
-import type { VariantProps } from 'class-variance-authority';
-import { cva } from 'class-variance-authority'
-import { clsx } from 'clsx'
-import { motion } from 'framer-motion'
-import type { ComponentPropsWithoutRef, ElementRef} from 'react';
-import { forwardRef } from 'react'
+import { Toggle as BaseToggle } from "@base-ui-components/react/toggle";
+import clsx from "clsx";
+import { motion } from "motion/react";
 
-const toggleVariants = cva(
-  'h-10 w-20 flex items-center rounded-full px-2 data-[state=off]:bg-gray-background data-[state=on]:justify-end children:data-[state=off]:bg-gray-foreground',
-  {
-    variants: {
-      variant: {
-        primary: 'data-[state=on]:bg-primary-background children:data-[state=on]:bg-primary-foreground',
-        secondary: 'data-[state=on]:bg-secondary-background children:data-[state=on]:bg-secondary-foreground',
-      },
-    },
-    defaultVariants: {
-      variant: 'primary',
-    },
-  }
-)
+interface ToggleProps {
+	ref?: React.RefObject<HTMLButtonElement>;
+	defaultPressed?: boolean;
+	className?: string;
+}
 
-const Toggle = forwardRef<
-  ElementRef<typeof TogglePrimitive.Root>,
-  ComponentPropsWithoutRef<typeof TogglePrimitive.Root> & VariantProps<typeof toggleVariants>
->(({ className, variant, ...props }, ref) => (
-  <TogglePrimitive.Root ref={ref} className={toggleVariants({ variant, className })} {...props}>
-    <motion.div
-      className={clsx('h-6 w-6 rounded-full transition-colors duration-300')}
-      layout
-      transition={{ type: 'spring', stiffness: 700, damping: 30 }}
-    />
-  </TogglePrimitive.Root>
-))
-
-Toggle.displayName = TogglePrimitive.Root.displayName
-
-export { Toggle }
+export function Toggle(props: ToggleProps) {
+	return (
+		<BaseToggle
+			defaultPressed={props.defaultPressed}
+			ref={props.ref}
+			render={(props, state) => (
+				<motion.button
+					// biome-ignore lint/suspicious/noExplicitAny: Doesnt properly type with motion
+					{...(props as any)}
+					className={clsx(
+						"flex h-10 w-20 cursor-pointer items-center rounded-full bg-gray-background px-2 transition-colors duration-300 data-pressed:justify-end data-pressed:bg-secondary-background",
+						props.className,
+					)}
+				>
+					<motion.div
+						layout
+						className={clsx(
+							"h-6 w-6 rounded-full transition-[background-color]",
+							{
+								"bg-secondary-foreground": state.pressed,
+								"bg-gray-foreground": !state.pressed,
+							},
+						)}
+						transition={{ type: "spring", stiffness: 700, damping: 30 }}
+					></motion.div>
+				</motion.button>
+			)}
+		/>
+	);
+}
