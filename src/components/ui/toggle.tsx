@@ -11,6 +11,7 @@ interface ToggleProps {
 export function Toggle(props: ToggleProps) {
 	return (
 		<BaseToggle
+			aria-label="Toggle"
 			defaultPressed={props.defaultPressed}
 			ref={props.ref}
 			render={(props, state) => (

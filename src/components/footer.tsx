@@ -9,18 +9,22 @@ export default function Footer() {
   const socials = [
     {
       icon: IconGithub,
+      label: "GitHub",
       link: "https://github.com/ZerNico",
     },
     {
       icon: IconLinkedin,
+      label: "LinkedIn",
       link: "https://linkedin.com/in/nico-franke-744313224",
     },
     {
       icon: IconTwitter,
+      label: "Twitter",
       link: "https://twitter.com/z3rnico",
     },
     {
       icon: IconInstagram,
+      label: "Instagram",
       link: "https://instagram.com/z3rnico",
     },
   ];
@@ -30,7 +34,7 @@ export default function Footer() {
       {year} • Nico Franke
       <div className="flex gap-1 text-xl">
         {socials.map((social) => (
-          <a href={social.link} target="_blank" rel="noreferrer" key={social.link}>
+          <a href={social.link} target="_blank" rel="noreferrer" key={social.link} aria-label={social.label}>
             <social.icon />
           </a>
         ))}
