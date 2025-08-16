@@ -32,6 +32,8 @@ const getCurrentlyPlaying = createServerFn({
 	method: "GET",
 	response: "raw",
 }).handler(async () => {
+	let interval: NodeJS.Timeout | null = null;
+
 	const stream = new ReadableStream({
 		start(controller) {
 			const spotify = new SpotifyService();
@@ -82,12 +84,13 @@ const getCurrentlyPlaying = createServerFn({
 			};
 
 			sendCurrentlyPlaying();
-
-			const interval = setInterval(sendCurrentlyPlaying, 5000);
-
-			return () => {
+			interval = setInterval(sendCurrentlyPlaying, 5000);
+		},
+		cancel() {
+			if (interval) {
 				clearInterval(interval);
-			};
+				interval = null;
+			}
 		},
 	});
 
