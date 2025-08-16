@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import About from "~/components/sections/about";
 import Building from "~/components/sections/building";
+import CV from "~/components/sections/cv";
 import Projects from "~/components/sections/projects";
 import Spotify from "~/components/sections/spotify";
 import Using from "~/components/sections/using";
@@ -24,6 +25,7 @@ function RouteComponent() {
 			</section>
 			<Building />
 			<Using seed={seed} />
+			<CV />
 			<Projects />
 			<Spotify />
 		</div>
