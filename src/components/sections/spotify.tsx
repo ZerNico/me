@@ -89,8 +89,8 @@ export default function Spotify() {
 			description="Check out what I am currently listening to on Spotify"
 		>
 			{data ? (
-				<div className="flex flex-col items-center justify-center gap-4">
-					<div className="relative aspect-square h-full w-full max-w-80">
+				<div className="flex flex-col items-center justify-center gap-4 overflow-hidden">
+					<div className="relative aspect-square h-full w-full max-w-80 rounded-full">
 						<AnimatePresence>
 							<motion.div
 								key={data.track.id}
