@@ -1,7 +1,4 @@
-import {
-	experimental_streamedQuery as streamedQuery,
-	useQuery,
-} from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "motion/react";
@@ -30,108 +27,61 @@ interface SpotifyData {
 
 const getCurrentlyPlaying = createServerFn({
 	method: "GET",
-	response: "raw",
-}).handler(async () => {
-	let interval: NodeJS.Timeout | null = null;
+}).handler(async (): Promise<SpotifyData | null> => {
+	try {
+		const spotify = new SpotifyService();
+		const currentlyPlaying = await spotify.getCurrentlyPlaying();
 
-	const stream = new ReadableStream({
-		start(controller) {
-			const spotify = new SpotifyService();
-
-			const sendCurrentlyPlaying = async () => {
-				try {
-					const currentlyPlaying = await spotify.getCurrentlyPlaying();
-
-					if (
-						currentlyPlaying &&
-						currentlyPlaying.currently_playing_type === "track"
-					) {
-						const data = JSON.stringify({
-							isPlaying: currentlyPlaying.is_playing,
-							track: {
-								id: currentlyPlaying.item.id,
-								name: currentlyPlaying.item.name,
-								artists: currentlyPlaying.item.artists,
-								album: currentlyPlaying.item.album,
-								externalURL: {
-									spotify: currentlyPlaying.item.external_urls.spotify,
-								},
-							},
-						} satisfies SpotifyData);
-						controller.enqueue(`data: ${data}\n\n`);
-					} else {
-						const recentlyPlayed = await spotify.getRecentlyPlayed();
-						const lastPlayed = recentlyPlayed.items[0];
-						if (lastPlayed.track) {
-							const data = JSON.stringify({
-								isPlaying: false,
-								track: {
-									id: lastPlayed.track.id,
-									name: lastPlayed.track.name,
-									artists: lastPlayed.track.artists,
-									album: lastPlayed.track.album,
-									externalURL: {
-										spotify: lastPlayed.track.external_urls.spotify,
-									},
-								},
-							} satisfies SpotifyData);
-							controller.enqueue(`data: ${data}\n\n`);
-						}
-					}
-				} catch (error) {
-					console.error("Error fetching currently playing:", error);
-				}
+		if (
+			currentlyPlaying &&
+			currentlyPlaying.currently_playing_type === "track"
+		) {
+			return {
+				isPlaying: currentlyPlaying.is_playing,
+				track: {
+					id: currentlyPlaying.item.id,
+					name: currentlyPlaying.item.name,
+					artists: currentlyPlaying.item.artists,
+					album: currentlyPlaying.item.album,
+					externalURL: {
+						spotify: currentlyPlaying.item.external_urls.spotify,
+					},
+				},
 			};
-
-			sendCurrentlyPlaying();
-			interval = setInterval(sendCurrentlyPlaying, 5000);
-		},
-		cancel() {
-			if (interval) {
-				clearInterval(interval);
-				interval = null;
+		} else {
+			const recentlyPlayed = await spotify.getRecentlyPlayed();
+			const lastPlayed = recentlyPlayed.items[0];
+			if (lastPlayed.track) {
+				return {
+					isPlaying: false,
+					track: {
+						id: lastPlayed.track.id,
+						name: lastPlayed.track.name,
+						artists: lastPlayed.track.artists,
+						album: lastPlayed.track.album,
+						externalURL: {
+							spotify: lastPlayed.track.external_urls.spotify,
+						},
+					},
+				};
 			}
-		},
-	});
-
-	return new Response(stream, {
-		headers: { "Content-Type": "text/event-stream" },
-	});
+		}
+	} catch (error) {
+		console.error("Error fetching currently playing:", error);
+	}
+	
+	return null;
 });
 
 export default function Spotify() {
 	const currentlyPlayingQuery = useQuery({
 		queryKey: ["spotify", "currently-playing"],
-		queryFn: streamedQuery<SpotifyData>({
-			queryFn: async function* ({ signal }) {
-				const response = await getCurrentlyPlaying();
-				const reader = response.body?.getReader();
-				if (!reader) {
-					throw new Error("Failed to get reader");
-				}
-				const decoder = new TextDecoder();
-				while (!signal.aborted) {
-					const { done, value } = await reader.read();
-					if (done) {
-						break;
-					}
-					try {
-						const text = decoder.decode(value);
-						const jsonText = text.replace(/^data: /, "").trim();
-						const data = JSON.parse(jsonText);
-						yield data;
-					} catch (error) {
-						console.error("Error parsing Spotify data:", error);
-						yield null;
-					}
-				}
-			},
-			refetchMode: "reset",
-			maxChunks: 1,
-		}),
+		queryFn: () => getCurrentlyPlaying(),
+		refetchInterval: 5000, // Refetch every 5 seconds
+		refetchIntervalInBackground: true,
 	});
 
-	const data = currentlyPlayingQuery.data?.[0];
+	const data = currentlyPlayingQuery.data;
 
 	return (
 		<Section
