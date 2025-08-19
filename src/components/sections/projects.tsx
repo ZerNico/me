@@ -8,7 +8,7 @@ export default function Projects() {
 		{
 			title: "Tune Perfect",
 			description:
-				"An open source Karaoke game built with Vue, Tauri, and trpc. It uses pitch detection to score your singing.",
+				"An open source Karaoke game built with SolidJS, Tauri and oRPC. It uses pitch detection to score your singing.",
 			icon: "/img/tune-perfect.svg",
 			url: "https://github.com/ZerNico/sing",
 		},
